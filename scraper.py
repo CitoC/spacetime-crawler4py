@@ -1,11 +1,8 @@
 import re
-from urllib.parse import urlparse, urldefrag
+from urllib.parse import urldefrag, urlparse
 from bs4 import BeautifulSoup as BS
 from report import Report, tokenize
 from utils.response import Response
-
-
-
 
 
 def scraper(url, resp, report: Report):
@@ -19,6 +16,10 @@ def scraper(url, resp, report: Report):
     # for reporting the 50 most common words in the entire set of pages
     report.count_each_page_word(url, resp)
 
+    # Count the number of unique pages
+    # A unique page is defined by removing # and all subsequent characters from a link
+    report.count_unique_page(url, resp)
+    
     #adds the domain if it is unique 
     report.add_subdomain(url)
 
@@ -34,27 +35,17 @@ def extract_next_links(url, resp: Response):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    found_urls = []
-    
-
-    #Checks to make sure we have a the status is 200 before looking at the urls
-    if(resp.status == 200):
-        
-        #parses the html of the page
-        info = BS(resp.raw_response.content, 'html.parser')
-        #gets all the a tags of the html
-        all_urls = info.find_all('a')
-
-        #goes through all the a tags found to pull out the urls from the href
-        for found_url in all_urls:
-            url_to_add = found_url.get('href')
-            #checks to make sure that the link we found is not the same as the page url and that the url was not found before 
-            if(url_to_add != url and url_to_add not in found_urls):
-                #adds the url to the list while also taking out the fragment. 
-                found_urls.append(urldefrag(url_to_add).url)
-        return found_urls
-        
-
+    url_list = []
+    if 200 <= resp.status <= 206 and resp.status != 204:
+        html = BS(resp.raw_response.content, 'html.parser')
+        anchors = html.find_all('a')               # get all <a> tags
+        for href in anchors:
+            found_url = href.get('href')          # get the actual link
+            useless = check_useless(found_url)
+            if found_url != url and not useless:
+                url_list.append(urldefrag(found_url))
+            # remove_useless_pages(url_list)
+        return url_list
     return list()
 
 #helper function to check to see if we are looking in one of the valid domains we were given. 
@@ -63,7 +54,7 @@ def in_valid_domain(url, parsed):
         return True
     else:
         return False
-
+        
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
@@ -87,3 +78,10 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+# useless pages - 
+# 1) page with query
+# 2) 
+def check_useless(url):
+    if '?' in str(url): 
+        return True

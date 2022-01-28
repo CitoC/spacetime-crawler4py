@@ -1,3 +1,4 @@
+from urllib.parse import urldefrag
 import scraper
 from bs4 import BeautifulSoup
 from utils.response import Response
@@ -37,7 +38,7 @@ class Report():
         # crawled under these domains? (Ignore English stop words)
         self.word_frequencies = {}
         self.stop_words = {}
-
+        self.page_set = set()
         # read every stop word from file and add it to a dictionary for quick look-up
         with open('stopwords.txt') as f:
             line = f.readline()
@@ -125,7 +126,7 @@ class Report():
     # print the report
     def __repr__(self):
         # the four different strings that will be concatenated to print the final report
-        one = ''
+        one = 'The number of unique pages is ' + str(len(self.page_set)) + '.\n'
         two = 'The longest page is ' + self.longest_page[0] + ' with ' + str(self.longest_page[1]) + ' words.\n'
         three = self.question_three_helper()
         four = ''
@@ -146,3 +147,16 @@ class Report():
 
         # get rid of the last comma and add a newline
         return three[0:-2] + '\n'
+<<<<<<< HEAD
+=======
+
+    # this function takes a list of valid links and split the link from the # point
+    # and only takes the left side of the result
+    # this is how a unique page is defined according to the requirement
+    def count_unique_page(self, url, resp: Response):
+        # only check the current page if it's valid and returned OK status
+        if scraper.is_valid(url) and resp.status == 200:
+            split_url = urldefrag(url)[0]
+            # split_url = str_url.split('#',1)[0]       # split from the first #, only take the left part 
+            self.page_set.add(split_url)                # add to page_set
+>>>>>>> master
