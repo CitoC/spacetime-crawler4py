@@ -49,6 +49,7 @@ class Report():
 
         #Question 4 how mainy subdomains did you find and the number of unique pages
         self.unique_subdomains = {}
+        self.unique_subdomains_unique_pages = set()
 
 
     # accessor to retrieve the longest page's word count. this allows for easy
@@ -88,13 +89,19 @@ class Report():
         #checks to make sure the url is valid first
         if(scraper.is_valid(url)):
             parsed = urlparse(url)
+            url_removed_fragment = urldefrag(url).url
             #print(url)
             #checks to make sure the url was not already looked at and that it is a subdomain of .ics.uci.edu
-            if parsed.netloc not in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu', url):
-                print(parsed.netloc)
-                self.unique_subdomains.update({parsed.netloc: 0})
-        
- 
+            if parsed.netloc not in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu/', url):
+                self.unique_subdomains.update({parsed.netloc: 1})
+                self.unique_subdomains_unique_pages.add(url_removed_fragment)
+
+            elif parsed.netloc in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu/', url):
+                if not url_removed_fragment in self.unique_subdomains_unique_pages:
+                    self.unique_subdomains_unique_pages.add(url_removed_fragment)
+                    num = self.unique_subdomains.get(parsed.netloc)
+                    self.unique_subdomains.update({parsed.netloc: num + 1})
+
 
     # this function expects the response received by the scraper function. 
 
@@ -130,7 +137,12 @@ class Report():
         two = 'The longest page is ' + self.longest_page[0] + ' with ' + str(self.longest_page[1]) + ' words.\n'
         three = self.question_three_helper()
         four = ''
-        return (one + two + three + four + '\n')
+        five = ''
+        subdomains_sorted = sorted(self.unique_subdomains.keys(), key=str.lower)
+        for subdomain in subdomains_sorted:
+            five = five + subdomain + " " + str(self.unique_subdomains.get(subdomain)) + '\n'
+
+        return (one + two + three + four + five + '\n')
 
     # this function helps to format the string for Q3 that will be returned by __repr__
     def question_three_helper(self) -> str:
@@ -157,3 +169,9 @@ class Report():
             split_url = urldefrag(url)[0]
             # split_url = str_url.split('#',1)[0]       # split from the first #, only take the left part 
             self.page_set.add(split_url)                # add to page_set
+            
+            # parsed_url = urlparse(url)
+            # if parsed_url.netloc in self.unique_subdomains.keys():
+            #     num = self.unique_subdomains.get(parsed_url.netloc)
+            #     self.unique_subdomains.update({parsed_url.netloc: num + 1})
+

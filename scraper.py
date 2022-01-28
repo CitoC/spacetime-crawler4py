@@ -16,12 +16,14 @@ def scraper(url, resp, report: Report):
     # for reporting the 50 most common words in the entire set of pages
     report.count_each_page_word(url, resp)
 
+     #adds the domain if it is unique 
+    report.add_subdomain(url)
+
     # Count the number of unique pages
     # A unique page is defined by removing # and all subsequent characters from a link
     report.count_unique_page(url, resp)
 
-    #adds the domain if it is unique 
-    report.add_subdomain(url)
+   
 
     return [link for link in links if is_valid(link)]
 
@@ -49,8 +51,9 @@ def extract_next_links(url, resp: Response):
     return list()
 
 #helper function to check to see if we are looking in one of the valid domains we were given. 
+#instead of url i also use parsed.netloc but netlock doesnt capture the / at the end of it
 def in_valid_domain(url, parsed):
-    if re.search('\.ics\.uci\.edu|\.cs\.uci\.edu|\.informatics\.uci\.edu|\.stat\.uci\.edu|today.uci.edu/department/information_computer_sciences', parsed.netloc):
+    if re.search('\.ics\.uci\.edu/|\.cs\.uci\.edu/|\.informatics\.uci\.edu/|\.stat\.uci\.edu/|today.uci.edu/department/information_computer_sciences/', url):
         return True
     else:
         return False
