@@ -15,9 +15,13 @@ def scraper(url, resp, report: Report):
     # higher than the previous max
     report.count_total_page_words(url, resp)
 
+    # count the frequency of each word in every page and add it to a dictionary
+    # for reporting the 50 most common words in the entire set of pages
+    report.count_each_page_word(url, resp)
+
     #adds the domain if it is unique 
     report.add_subdomain(url)
-    
+
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp: Response):
