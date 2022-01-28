@@ -1,8 +1,9 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urldefrag, urlparse
 from bs4 import BeautifulSoup as BS
 from report import Report
 from utils.response import Response
+
 
 def scraper(url, resp, report: Report):
     links = extract_next_links(url, resp)
@@ -14,6 +15,10 @@ def scraper(url, resp, report: Report):
     # count the frequency of each word in every page and add it to a dictionary
     # for reporting the 50 most common words in the entire set of pages
     report.count_each_page_word(url, resp)
+
+    # Count the number of unique pages
+    # A unique page is defined by removing # and all subsequent characters from a link
+    report.count_unique_page(url, resp)
 
     return [link for link in links if is_valid(link)]
 
@@ -27,19 +32,19 @@ def extract_next_links(url, resp: Response):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    found_urls = []
-    #status 404 going in. 
-    if(resp.status == 200):
-        info = BS(resp.raw_response.content, 'html.parser')
-        all_urls = info.find_all('a')
-        for found_url in all_urls:
-            url_to_add = found_url.get('href')
-            if(url_to_add != url):
-                found_urls.append(url_to_add)
-        return found_urls
-        
-
+    url_list = []
+    if 200 <= resp.status <= 206:
+        html = BS(resp.raw_response.content, 'html.parser')
+        anchors = html.find_all('a')               # get all <a> tags
+        for href in anchors:
+            found_url = href.get('href')          # get the actual link
+            useless = check_useless(found_url)
+            if found_url != url and not useless:
+                url_list.append(found_url)
+            # remove_useless_pages(url_list)
+        return url_list
     return list()
+
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -64,3 +69,10 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+# useless pages - 
+# 1) page with query
+# 2) 
+def check_useless(url):
+    if '?' in str(url): 
+        return True
