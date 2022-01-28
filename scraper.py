@@ -19,7 +19,7 @@ def scraper(url, resp, report: Report):
     # Count the number of unique pages
     # A unique page is defined by removing # and all subsequent characters from a link
     report.count_unique_page(url, resp)
-    
+
     #adds the domain if it is unique 
     report.add_subdomain(url)
 
@@ -43,7 +43,7 @@ def extract_next_links(url, resp: Response):
             found_url = href.get('href')          # get the actual link
             useless = check_useless(found_url)
             if found_url != url and not useless:
-                url_list.append(urldefrag(found_url))
+                url_list.append(urldefrag(found_url).url)
             # remove_useless_pages(url_list)
         return url_list
     return list()

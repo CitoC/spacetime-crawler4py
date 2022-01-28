@@ -147,8 +147,6 @@ class Report():
 
         # get rid of the last comma and add a newline
         return three[0:-2] + '\n'
-<<<<<<< HEAD
-=======
 
     # this function takes a list of valid links and split the link from the # point
     # and only takes the left side of the result
@@ -159,4 +157,3 @@ class Report():
             split_url = urldefrag(url)[0]
             # split_url = str_url.split('#',1)[0]       # split from the first #, only take the left part 
             self.page_set.add(split_url)                # add to page_set
->>>>>>> master
