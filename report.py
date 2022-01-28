@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from utils.response import Response
 import re
 from urllib.parse import urlparse
+
 # helper function to aid with finding the 50 most common words
 def tokenize(text: str) -> list:
     token_list = []
@@ -22,7 +23,7 @@ def tokenize(text: str) -> list:
 
     # add each word to the token list
     for word in text.split():
-        token_list.append(word)
+        token_list.append(word.lower())
     
     return token_list
 
@@ -41,11 +42,10 @@ class Report():
         self.page_set = set()
         # read every stop word from file and add it to a dictionary for quick look-up
         with open('stopwords.txt') as f:
-            line = f.readline()
-            while line:
+            for line in f:
+                for word in line.split():
                 # remove newlines from each word before adding to dictionary
-                self.stop_words[line[0:-1]] = 1
-                line = f.readline()
+                    self.stop_words[word] = 1
 
         #Question 4 how mainy subdomains did you find and the number of unique pages
         self.unique_subdomains = {}
@@ -110,18 +110,18 @@ class Report():
             soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
             # get plain text from the current page
             text = soup.get_text()
-            # split the text into a list
+            # split the text into a list of lowercase words 
             words = tokenize(text)
             
             for word in words:
                 # first ensure it's not a stopword
                 if word not in self.stop_words.keys() and len(word) > 1:
                     # increment its counter if it's in the list
-                    if word.lower() in self.word_frequencies.keys():
-                        self.word_frequencies[word.lower()] += 1
+                    if word in self.word_frequencies.keys():
+                        self.word_frequencies[word] += 1
                     # or add it if it isn't
                     else:
-                        self.word_frequencies[word.lower()] = 1
+                        self.word_frequencies[word] = 1
 
     # print the report
     def __repr__(self):
