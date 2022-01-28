@@ -1,13 +1,13 @@
 import re
 from urllib.parse import urldefrag, urlparse
 from bs4 import BeautifulSoup as BS
-from report import Report
+from report import Report, tokenize
 from utils.response import Response
 
 
 def scraper(url, resp, report: Report):
+   
     links = extract_next_links(url, resp)
-
     # count the total number of words in this page and save the total if it's
     # higher than the previous max
     report.count_total_page_words(url, resp)
@@ -19,6 +19,9 @@ def scraper(url, resp, report: Report):
     # Count the number of unique pages
     # A unique page is defined by removing # and all subsequent characters from a link
     report.count_unique_page(url, resp)
+
+    #adds the domain if it is unique 
+    report.add_subdomain(url)
 
     return [link for link in links if is_valid(link)]
 
@@ -40,12 +43,18 @@ def extract_next_links(url, resp: Response):
             found_url = href.get('href')          # get the actual link
             useless = check_useless(found_url)
             if found_url != url and not useless:
-                url_list.append(found_url)
+                url_list.append(urldefrag(found_url).url)
             # remove_useless_pages(url_list)
         return url_list
     return list()
 
-
+#helper function to check to see if we are looking in one of the valid domains we were given. 
+def in_valid_domain(url, parsed):
+    if re.search('\.ics\.uci\.edu|\.cs\.uci\.edu|\.informatics\.uci\.edu|\.stat\.uci\.edu|today.uci.edu/department/information_computer_sciences', parsed.netloc):
+        return True
+    else:
+        return False
+        
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
@@ -54,7 +63,7 @@ def is_valid(url):
         parsed = urlparse(url)
         #or parsed.hostname not in set(["www.ics.uci.edu","www.cs.uci.edu/","www.informatics.uci.edu/", "www.stat.uci.edu/" ])
         #looks throught to make sure the domain is one of the ones we are supposed to be in. Will also filter out comment sections so that they are not valid urls to look at. 
-        if parsed.scheme not in set(["http", "https"]) or not re.search('ics.uci.edu|cs.uci.edu|informatics.uci.edu|stat.uci.edu', parsed.netloc) or re.match('comment|respond', parsed.fragment):
+        if parsed.scheme not in set(["http", "https"]) or not in_valid_domain(url, parsed) or re.match('replytocom', parsed.query) or re.search('event', url):
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"

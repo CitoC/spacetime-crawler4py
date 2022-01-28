@@ -3,7 +3,7 @@ import scraper
 from bs4 import BeautifulSoup
 from utils.response import Response
 import re
-
+from urllib.parse import urlparse
 # helper function to aid with finding the 50 most common words
 def tokenize(text: str) -> list:
     token_list = []
@@ -47,6 +47,10 @@ class Report():
                 self.stop_words[line[0:-1]] = 1
                 line = f.readline()
 
+        #Question 4 how mainy subdomains did you find and the number of unique pages
+        self.unique_subdomains = {}
+
+
     # accessor to retrieve the longest page's word count. this allows for easy
     # comparison between a current page's word count and the previous longest page
     def get_page_word_count(self) -> int:
@@ -77,6 +81,22 @@ class Report():
             if len(words) > self.longest_page[1]:
                 # self.update_page_word_count(url, len(words))
                 self.longest_page = (url, len(words))
+
+    #function to add the unqiue subdomain found
+    def add_subdomain(self, url):
+        
+        #checks to make sure the url is valid first
+        if(scraper.is_valid(url)):
+            parsed = urlparse(url)
+            #print(url)
+            #checks to make sure the url was not already looked at and that it is a subdomain of .ics.uci.edu
+            if parsed.netloc not in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu', url):
+                print(parsed.netloc)
+                self.unique_subdomains.update({parsed.netloc: 0})
+        
+ 
+
+    # this function expects the response received by the scraper function. 
 
     # this function expects both the url and the response received by scraper(url, resp).
     # this function should be called once for each URL, so that it can count the number
