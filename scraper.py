@@ -33,7 +33,7 @@ def extract_next_links(url, resp: Response):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     url_list = []
-    if 200 <= resp.status <= 206:
+    if 200 <= resp.status <= 206 and resp.status != 204:
         html = BS(resp.raw_response.content, 'html.parser')
         anchors = html.find_all('a')               # get all <a> tags
         for href in anchors:
