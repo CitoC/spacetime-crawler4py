@@ -53,7 +53,7 @@ def extract_next_links(url, resp: Response):
 #helper function to check to see if we are looking in one of the valid domains we were given. 
 #instead of url i also use parsed.netloc but netlock doesnt capture the / at the end of it
 def in_valid_domain(url, parsed):
-    if re.search('\.ics\.uci\.edu/|\.cs\.uci\.edu/|\.informatics\.uci\.edu/|\.stat\.uci\.edu/|today.uci.edu/department/information_computer_sciences/', url):
+    if re.search('\.ics\.uci\.edu|\.cs\.uci\.edu|\.informatics\.uci\.edu|\.stat\.uci\.edu|today.uci.edu/department/information_computer_sciences', parsed.netloc):
         return True
     else:
         return False
