@@ -31,7 +31,9 @@ class Worker(Thread):
                 print(report)
                 
                 break
-            resp = download(tbd_url, self.config, self.logger)
+            if '.ppsx' not in tbd_url:
+                resp = download(tbd_url, self.config, self.logger)
+            
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")

@@ -88,19 +88,23 @@ class Report():
         
         #checks to make sure the url is valid first
         if(scraper.is_valid(url)):
+            url =  url.replace('www.','')
             parsed = urlparse(url)
             url_removed_fragment = urldefrag(url).url
             #print(url)
             #checks to make sure the url was not already looked at and that it is a subdomain of .ics.uci.edu
-            if parsed.netloc not in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu/', url):
-                self.unique_subdomains.update({parsed.netloc: 1})
-                self.unique_subdomains_unique_pages.add(url_removed_fragment)
-
-            elif parsed.netloc in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu/', url):
-                if not url_removed_fragment in self.unique_subdomains_unique_pages:
-                    self.unique_subdomains_unique_pages.add(url_removed_fragment)
-                    num = self.unique_subdomains.get(parsed.netloc)
-                    self.unique_subdomains.update({parsed.netloc: num + 1})
+            if parsed.netloc.lower() not in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu',parsed.netloc.lower()) and parsed.netloc.lower() != 'www.ics.uci.edu'\
+             and not re.search('edu:', parsed.netloc.lower()):
+                self.unique_subdomains.update({parsed.netloc.lower(): 1})
+                self.unique_subdomains_unique_pages.add(url_removed_fragment.lower())
+            #if the subdomain has already been looked at checks to see if the page is unique. 
+            elif parsed.netloc.lower() in self.unique_subdomains.keys() and re.search('\.ics\.uci\.edu', parsed.netloc.lower()) and parsed.netloc.lower() != 'www.ics.uci.edu'\
+             and not re.search('edu:', parsed.netloc.lower()):
+                #checks to see if the page is unique to this domain and if it is updates the page count for that subdomain. 
+                if not url_removed_fragment.lower() in self.unique_subdomains_unique_pages:
+                    self.unique_subdomains_unique_pages.add(url_removed_fragment.lower())
+                    num = self.unique_subdomains.get(parsed.netloc.lower())
+                    self.unique_subdomains.update({parsed.netloc.lower(): num + 1})
 
 
     # this function expects the response received by the scraper function. 
@@ -140,7 +144,7 @@ class Report():
         five = ''
         subdomains_sorted = sorted(self.unique_subdomains.keys(), key=str.lower)
         for subdomain in subdomains_sorted:
-            five = five + subdomain + " " + str(self.unique_subdomains.get(subdomain)) + '\n'
+            five = five + 'http://' + subdomain + ", " + str(self.unique_subdomains.get(subdomain)) + '\n'
 
         return (one + two + three + four + five + '\n')
 
@@ -170,8 +174,4 @@ class Report():
             # split_url = str_url.split('#',1)[0]       # split from the first #, only take the left part 
             self.page_set.add(split_url)                # add to page_set
             
-            # parsed_url = urlparse(url)
-            # if parsed_url.netloc in self.unique_subdomains.keys():
-            #     num = self.unique_subdomains.get(parsed_url.netloc)
-            #     self.unique_subdomains.update({parsed_url.netloc: num + 1})
 
