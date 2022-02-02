@@ -86,5 +86,6 @@ def is_valid(url):
 # 1) page with query
 # 2) 
 def check_useless(url):
-    if '?' in str(url) and 'date' in strl(url): 
+    if '?' in str(url): 
         return True
+    return False
